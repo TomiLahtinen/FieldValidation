@@ -34,7 +34,7 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocorrectionType="no" keyboardType="numbersAndPunctuation" returnKeyType="done" enablesReturnKeyAutomatically="YES"/>
                                 <connections>
-                                    <action selector="textFieldEdited:" destination="BYZ-38-t0r" eventType="editingDidEnd" id="l4d-iN-tBf"/>
+                                    <action selector="textFieldEdited:" destination="BYZ-38-t0r" eventType="editingChanged" id="faY-yD-66N"/>
                                 </connections>
                             </textField>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="Wwm-dJ-b9s">

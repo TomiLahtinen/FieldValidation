@@ -37,11 +37,37 @@ class ViewController: UIViewController {
         
         latitudeField.delegate = self
         longitudeField.delegate = self
+        
+        self.hideKeyboardWhenTappedAround()
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        NotificationCenter.default.addObserver(self, selector: #selector(ViewController.keyboardShown), name: .UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(ViewController.keyboardHidden), name: .UIKeyboardWillHide, object: nil)
+    }
+    
+    @objc private func keyboardShown(notification: Notification) {
+        if let userInfo = notification.userInfo,
+           let keyboardRect = userInfo[UIKeyboardFrameEndUserInfoKey] as? NSValue {
+                let buttonBottom = moveButton.frame.origin.y + moveButton.frame.size.height
+                let keyBoardTop = view.frame.height - keyboardRect.cgRectValue.height
+                let needToMoveUpBy = keyBoardTop - buttonBottom < 0 ? keyBoardTop - buttonBottom : 0
+                UIView.animate(withDuration: 0.1, animations: {
+                    self.view.frame.origin.y = (needToMoveUpBy)
+                })
+        }
+    }
+    
+    @objc private func keyboardHidden(notification: Notification) {
+        UIView.animate(withDuration: 0.1, animations: {
+            self.view.frame.origin.y = 0
+        })
     }
     
     private static func validator(_ absoluteValue: Double) -> (String?) -> Bool {
@@ -76,5 +102,17 @@ extension ViewController: UITextFieldDelegate {
         doValidation()
         return true
     }
+}
+
+// Put this piece of code anywhere you like
+extension UIViewController {
+    func hideKeyboardWhenTappedAround() {
+        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(UIViewController.dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+    }
     
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
 }
