@@ -70,13 +70,13 @@ class ViewController: UIViewController {
         })
     }
     
-    private static func validator(_ absoluteValue: Double) -> (String?) -> Bool {
+    private static func validator(_ range: Double) -> (String?) -> Bool {
         func valid(_ string: String?) -> Bool {
             guard let string = string, // Mask optional by using same name
                   let asDouble = Double(string) else { // In this scope we have unwrapped string instead of optinal
                 return false
             }
-            return (-asDouble...asDouble).contains(absoluteValue)
+            return (-range...range).contains(asDouble)
         }
         return valid
     }
