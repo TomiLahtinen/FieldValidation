@@ -58,14 +58,14 @@ class ViewController: UIViewController {
                 let buttonBottom = moveButton.frame.origin.y + moveButton.frame.size.height
                 let keyBoardTop = view.frame.height - keyboardRect.cgRectValue.height
                 let needToMoveUpBy = keyBoardTop - buttonBottom < 0 ? keyBoardTop - buttonBottom : 0
-                UIView.animate(withDuration: 0.1, animations: {
+                UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseIn, animations: {
                     self.view.frame.origin.y = (needToMoveUpBy)
                 })
         }
     }
     
     @objc private func keyboardHidden(notification: Notification) {
-        UIView.animate(withDuration: 0.1, animations: {
+        UIView.animate(withDuration: 0.1, delay: 0, options: .curveEaseOut, animations: {
             self.view.frame.origin.y = 0
         })
     }
@@ -76,7 +76,7 @@ class ViewController: UIViewController {
                   let asDouble = Double(string) else { // In this scope we have unwrapped string instead of optinal
                 return false
             }
-            return abs(asDouble) <= absoluteValue
+            return (-asDouble...asDouble).contains(absoluteValue)
         }
         return valid
     }
