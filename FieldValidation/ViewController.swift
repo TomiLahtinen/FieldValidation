@@ -16,6 +16,11 @@ class ViewController: UIViewController {
     @IBOutlet weak var longitudeField: UITextField!
     @IBOutlet weak var moveButton: UIButton!
     
+    let latitudeValidator = ViewController.createValidator(forRange: 90) // Latitudes between -90 ... 90
+    let longitudeValidator = ViewController.createValidator(forRange: 180) // Longitudes between -180 ... 180
+    
+    // MARK:- IBAction implementations
+    
     @IBAction func textFieldEdited(_ sender: UITextField) {
         doValidation()
     }
@@ -23,16 +28,17 @@ class ViewController: UIViewController {
     @IBAction func moveTapped(_ sender: Any) {
         let location = CLLocationCoordinate2DMake(Double(latitudeField.text!)!,
                                                   Double(longitudeField.text!)!)
-        let region = MKCoordinateRegionMake(location, MKCoordinateSpan(latitudeDelta: 5.0, longitudeDelta: 5.0))
+        let region = MKCoordinateRegionMake(location, MKCoordinateSpan(latitudeDelta: 3.0, longitudeDelta: 3.0))
         mapView.setRegion(region, animated: true)
     }
     
-    let latitudeValidator = ViewController.validator(90)
-    let longitudeValidator = ViewController.validator(180)
+   
+    // MARK:- ViewController life-cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
         moveButton.isEnabled = false
         
         latitudeField.delegate = self
@@ -50,6 +56,17 @@ class ViewController: UIViewController {
         super.viewDidAppear(animated)
         NotificationCenter.default.addObserver(self, selector: #selector(ViewController.keyboardShown), name: .UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(ViewController.keyboardHidden), name: .UIKeyboardWillHide, object: nil)
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        NotificationCenter.default.removeObserver(self, name: .UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .UIKeyboardWillHide, object: nil)
+    }
+    
+    // MARK:- Private parts
+    private func doValidation() {
+        moveButton.isEnabled = latitudeValidator(latitudeField.text) && longitudeValidator(longitudeField.text)
     }
     
     @objc private func keyboardShown(notification: Notification) {
@@ -70,23 +87,24 @@ class ViewController: UIViewController {
         })
     }
     
-    private static func validator(_ range: Double) -> (String?) -> Bool {
-        func valid(_ string: String?) -> Bool {
+    /**
+     * Create validator function that accepts optional string as a parameter
+     * and return true if Double value represented by string is contained within
+     * given Range
+     */
+    private static func createValidator(forRange range: Double) -> (String?) -> Bool {
+        return { (string: String?) -> Bool in
             guard let string = string, // Mask optional by using same name
-                  let asDouble = Double(string) else { // In this scope we have unwrapped string instead of optinal
-                return false
+                  let asDouble = Double(string) // We now have unwrapped constant string instead of optional
+                  else {
+                     return false
             }
-            return (-range...range).contains(asDouble)
+            return (-range...range).contains(asDouble) // Use closed range operator to form range and check if contains
         }
-        return valid
     }
 }
 
 extension ViewController: UITextFieldDelegate {
-    
-    private func doValidation() {
-        moveButton.isEnabled = latitudeValidator(latitudeField.text) && longitudeValidator(longitudeField.text)
-    }
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         doValidation()
@@ -100,12 +118,20 @@ extension ViewController: UITextFieldDelegate {
     
     func textFieldShouldClear(_ textField: UITextField) -> Bool {
         doValidation()
+        // Never prevent clearing even if validation fails
+        return true
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
         return true
     }
 }
 
-// Put this piece of code anywhere you like
+
+// MARK :- Helper extension to make keyboard disappear when user taps anywhere in the view outside of editor component
 extension UIViewController {
+    
     func hideKeyboardWhenTappedAround() {
         let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(UIViewController.dismissKeyboard))
         tap.cancelsTouchesInView = false
